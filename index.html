@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ranking Visible Content by CTR Review Priority — Abdelrahman Mohamed</title>
+<meta name="description" content="A decision-support model for CTR engagement opportunity scoring, built on the FlyRank ML Internship dataset.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f7f4;
+    --ink:#171a1f;
+    --ink-soft:#4b5158;
+    --rule:#dcdcd4;
+    --blue:#2c4f8c;
+    --blue-deep:#1c3563;
+    --amber:#b8791f;
+    --card:#ffffff;
+    --max:720px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Source Serif 4", Georgia, serif;
+    font-size:17px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--blue-deep);}
+  a:hover{color:var(--amber);}
+  a:focus-visible, button:focus-visible{outline:2px solid var(--blue); outline-offset:3px;}
+  .wrap{max-width:var(--max); margin:0 auto; padding:0 24px;}
+  .mono{font-family:"IBM Plex Mono", ui-monospace, monospace;}
+
+  header.hero{
+    border-bottom:1px solid var(--rule);
+    padding:72px 0 40px;
+    animation:rise .6s ease-out both;
+  }
+  @keyframes rise{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+  @media (prefers-reduced-motion: reduce){ header.hero{animation:none;} }
+
+  .kicker{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:13px;
+    color:var(--blue-deep);
+    letter-spacing:.02em;
+  }
+  h1{
+    font-size:2.1rem;
+    line-height:1.25;
+    font-weight:700;
+    margin:14px 0 18px;
+    max-width:15ch;
+  }
+  .byline{color:var(--ink-soft); font-size:.98rem;}
+  .byline a{text-decoration-thickness:1px;}
+  .byline .sep{color:var(--rule); margin:0 .5em;}
+
+  section{padding:44px 0; border-bottom:1px solid var(--rule);}
+  section:last-of-type{border-bottom:none;}
+  h2{
+    font-size:1.15rem;
+    font-weight:700;
+    margin:0 0 16px;
+  }
+  .num{ color:var(--blue-deep); font-family:"IBM Plex Mono", monospace; font-size:.85em; margin-right:.5em;}
+
+  .abstract{
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-left:3px solid var(--blue);
+    padding:24px 26px;
+    font-size:.98rem;
+  }
+  .abstract p{margin:0;}
+  .abstract p + p{margin-top:1em;}
+
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1px;
+    background:var(--rule);
+    border:1px solid var(--rule);
+  }
+  .stat{
+    background:var(--card);
+    padding:20px 18px;
+    text-align:left;
+  }
+  .stat .label{font-family:"IBM Plex Mono", monospace; font-size:.72rem; color:var(--ink-soft); text-transform:lowercase;}
+  .stat .value{font-size:1.7rem; font-weight:700; margin-top:6px;}
+  .stat .delta{font-family:"IBM Plex Mono", monospace; font-size:.8rem; color:var(--blue-deep); margin-top:4px;}
+  .stat.model{border-top:2px solid var(--amber);}
+
+  .toc{list-style:none; margin:0; padding:0;}
+  .toc li{
+    display:flex; gap:14px;
+    padding:10px 0;
+    border-bottom:1px dashed var(--rule);
+    font-size:.96rem;
+  }
+  .toc li:last-child{border-bottom:none;}
+  .toc .n{font-family:"IBM Plex Mono", monospace; color:var(--blue-deep); width:1.4em; flex-shrink:0;}
+
+  .viewer-frame{
+    border:1px solid var(--rule);
+    background:var(--card);
+    height:820px;
+    width:100%;
+  }
+  .viewer-fallback{
+    font-size:.9rem; color:var(--ink-soft); margin-top:10px;
+  }
+  @media (max-width:640px){
+    .viewer-frame{height:60vh;}
+    .stats{grid-template-columns:1fr;}
+    h1{font-size:1.7rem;}
+  }
+
+  .repro dl{margin:0; display:grid; grid-template-columns:auto 1fr; gap:8px 20px; font-size:.94rem;}
+  .repro dt{font-family:"IBM Plex Mono", monospace; color:var(--ink-soft);}
+  .repro dd{margin:0;}
+
+  footer{padding:40px 0 72px; font-size:.9rem; color:var(--ink-soft);}
+  footer a{color:var(--blue-deep);}
+
+  .btn{
+    display:inline-block;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.82rem;
+    padding:9px 16px;
+    border:1px solid var(--ink);
+    color:var(--ink);
+    text-decoration:none;
+  }
+  .btn:hover{background:var(--ink); color:var(--paper);}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">CTR / Engagement Opportunity Scoring — FlyRank ML Internship Capstone</div>
+    <h1>Ranking Visible Content by CTR Review Priority</h1>
+    <div class="byline">
+      Abdelrahman Mohamed <span class="sep">·</span> Machine Learning Track
+      <span class="sep">·</span> <a href="https://github.com/abdelrahmanmohamed05/FlyRank-AI/">github.com/abdelrahmanmohamed05/FlyRank-AI</a>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">§</span>Abstract</h2>
+    <div class="abstract">
+      <p>Search teams have limited time to manually review content for click-through-rate issues, so a ranked queue that surfaces the most promising review candidates first has direct operational value. This paper asks whether content likely to under-capture clicks in a future month can be identified using only information available before that month.</p>
+      <p>Using pseudonymized client/content-level Search Console aggregates from the FlyRank internship warehouse, five pre-outcome features from a February 2026 window are used to predict March 2026 CTR underperformance. A logistic regression model is compared against a transparent rule-based baseline on an identical, client-grouped held-out split. The result is observational and decision-support only — it ranks a review queue, it does not establish a causal effect on click-through behavior.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">§</span>Headline result</h2>
+    <div class="stats">
+      <div class="stat">
+        <div class="label">baseline · average precision</div>
+        <div class="value">0.828</div>
+      </div>
+      <div class="stat model">
+        <div class="label">model · average precision</div>
+        <div class="value">0.912</div>
+        <div class="delta">+0.084 over baseline</div>
+      </div>
+      <div class="stat">
+        <div class="label">held-out test rows</div>
+        <div class="value">13,017</div>
+        <div class="delta mono">client-grouped split</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">§</span>Read the paper</h2>
+    <iframe class="viewer-frame" src="Paper_Research/capstone_paper.pdf" title="Capstone research paper PDF"></iframe>
+    <p class="viewer-fallback">
+      If the viewer above doesn't load on your device,
+      <a href="Paper_Research/capstone_paper.pdf">open the PDF directly</a>.
+    </p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2><span class="num">§</span>Contents</h2>
+    <ul class="toc">
+      <li><span class="n">1</span> Introduction / Problem statement</li>
+      <li><span class="n">2</span> Data</li>
+      <li><span class="n">3</span> Methodology</li>
+      <li><span class="n">4</span> Results</li>
+      <li><span class="n">5</span> Limitations</li>
+      <li><span class="n">6</span> Ranked recommendations</li>
+      <li><span class="n">7</span> Reproducibility</li>
+      <li><span class="n">8</span> Acknowledgments &amp; data credit</li>
+    </ul>
+  </div>
+</section>
+
+<section class="repro">
+  <div class="wrap">
+    <h2><span class="num">§</span>Reproducibility</h2>
+    <dl>
+      <dt>notebook</dt><dd><a href="notebooks/capstone.ipynb">work/notebooks/capstone.ipynb</a></dd>
+      <dt>seed</dt><dd>random_state = 42 (split &amp; model)</dd>
+      <dt>split</dt><dd>GroupShuffleSplit, 25% test, grouped by client_hash_id</dd>
+      <dt>data</dt><dd>FlyRank internship warehouse, Feb–Mar 2026 windows</dd>
+    </dl>
+    <p style="margin-top:22px;">
+      <a class="btn" href="https://github.com/abdelrahmanmohamed05/FlyRank-AI/">View full repository →</a>
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Built on the FlyRank ML Internship dataset. Data courtesy of <a href="https://flyrank.ai">FlyRank</a>.
+  </div>
+</footer>
+
+</body>
+</html>
